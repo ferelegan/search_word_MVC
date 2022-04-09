@@ -39,22 +39,27 @@ class SearchWordView:
         """)
 
     def __select_menu(self):
-        self.__menu1()
-        option = input('请输入选项：')
-        if option == '1':
-            if self.__controller.login():
-                self.__menu2()
-        elif option == '2':
-            if self.__controller.register():
-                consequence = input('请问是否登陆(y/n):')
-                if consequence == 'y':
+        while True:
+            option = input('请输入选项：')
+            if option == '1':
+                if self.__controller.login():
                     self.__menu2()
+            elif option == '2':
+                if self.__controller.register():
+                    consequence = input('请问是否登陆(y/n):')
+                    if consequence == 'y':
+                        self.__menu2()
+                    else:
+                        return
                 else:
-                    return
-            else:
-                print('注册失败！！！')
-        elif option == '3':
-            exit()
+                    print('用户名已存在,注册失败！！！')
+            elif option == '3':
+                exit()
+
+    def main(self):
+        while True:
+            self.__menu1()
+            self.__select_menu()
 
 
 class SearchWordController:
@@ -66,10 +71,10 @@ class SearchWordController:
 
     def register(self) -> bool:
         user_name = input('请输入用户名:')
-        self.__sock.send(('R %s'%user_name).encode())
+        user_passwd = input('请输入密码:')
+        self.__sock.send(('R %s %s'%(user_name,user_passwd)).encode())
         mesg = self.__sock.recv(1024)
         if mesg == b'OK':
-            user_passwd = input('请输入密码:')
             return True
         else:
             return False
@@ -80,10 +85,14 @@ class SearchWordController:
 class SearchWordTCP:
     def __init__(self):
         self.__host = '127.0.0.1'
-        self.__port = '8888'
+        self.__port = 8888
         self.__address = (self.__host, self.__port)
         self.__sock = socket()
 
     def connect_server(self):
         self.__sock.connect(self.__address)
         return self.__sock
+
+if __name__ == '__main__':
+    view = SearchWordView()
+    view.main()
