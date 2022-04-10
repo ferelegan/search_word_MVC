@@ -38,22 +38,36 @@ class SearchWordView:
         ╚========================================╝
         """)
 
-    def __select_menu(self):
+    def __select_menu_1(self):
         while True:
+            self.__menu1()
             option = input('请输入选项：')
             if option == '1':
-                if self.__controller.login():
-                    self.__menu2()
+                self.__login()
             elif option == '2':
-                self.register()
+                self.__register()
             elif option == '3':
-                exit()
+                self.__controller.exit()
+                print('谢谢使用！！！')
+                break
+            else:
+                print('输入有误！！！')
 
 
     def __select_menu_2(self):
-        self.__menu2()
+        while True:
+            self.__menu2()
+            option = input('请输入选项：')
+            if option == '1':
+                self.__search_word()
+            elif option == '2':
+                self.__check_history()
+            elif option == '3':
+                break
+            else:
+                print('输入有误！！！')
 
-    def register(self):
+    def __register(self):
         if self.__controller.register() == 2:
             print('注册成功！！！')
             consequence = input('请问是否登陆(y/n):')
@@ -67,11 +81,21 @@ class SearchWordView:
         else:
             print('用户名已存在,注册失败！！！')
 
-    def main(self):
-        while True:
-            self.__menu1()
-            self.__select_menu()
+    def __login(self):
+        if self.__controller.login():
+            print('登录成功！！！')
+            self.__select_menu_2()
+        else:
+            print('用户名或密码错误,登录失败！！！')
 
+    def main(self):
+        self.__select_menu_1()
+
+    def __search_word(self):
+        pass
+
+    def __check_history(self):
+        pass
 
 
 class SearchWordController:
@@ -79,7 +103,14 @@ class SearchWordController:
         self.__sock = SearchWordTCP().connect_server()
 
     def login(self) -> bool:
-        pass
+        user_name = input('请输入用户名:')
+        user_passwd = input('请输入密码:')
+        self.__sock.send(('L %s %s' % (user_name, user_passwd)).encode())
+        mesg = self.__sock.recv(1024)
+        if mesg == b'OK':
+            return True
+        else:
+            return False
 
     def register(self) -> int:
         user_name = input('请输入用户名:')
@@ -92,6 +123,9 @@ class SearchWordController:
             return 2
         else:
             return 3
+
+    def exit(self):
+        self.__sock.send(b'E')
 
 
 class SearchWordTCP:

@@ -32,3 +32,28 @@ class SearchWordSQL:
             self.db.commit()
             print('数据注入成功！！！')
             return True
+
+    def login(self, name, passwd):
+        """
+        我写的 效率不高有for循环！
+        sql = 'select name,password from user;'
+        self.cur.execute(sql) # [(name,password),(name,password),...]
+        for item in self.cur:
+            if name in item[0] and passwd in item[1]:
+                return True
+        return False
+        """
+        # 老师的
+        sql = 'select name from user where name = %s and password = %s;'
+        self.cur.execute(sql,[name,passwd])
+        if self.cur.fetchone():
+            return True
+        else:
+            return False
+
+
+if __name__ == '__main__':
+    sql = SearchWordSQL()
+    sql.cursor()
+    if sql.login('mary','123456'):
+        print('登陆成功!!!')

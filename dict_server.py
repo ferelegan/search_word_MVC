@@ -46,6 +46,15 @@ class SearchWordHandle:
         else:
             self.__connfd.send(b'FAIL')
 
+    def login(self, mesg):
+        name = mesg.split(' ')[0]
+        passwd = mesg.split(' ')[1]
+        if db.login(name,passwd):
+            self.__connfd.send(b'OK')
+        else:
+            self.__connfd.send(b'FAIL')
+
+
 class SearchWordProcess(Process):
     def __init__(self,connfd):
         super().__init__()
@@ -58,13 +67,14 @@ class SearchWordProcess(Process):
             if mesg[0] == 'R':
                 self.__handle.register(mesg[1])
             elif mesg[0] == 'L':
-                pass
+                self.__handle.login(mesg[1])
             elif mesg[0] == 'Q':
                 pass
             elif mesg[0] == 'H':
                 pass
-            elif mesg[0] == 'E':
-                pass
+            elif mesg[0] or not mesg == 'E':
+                print('客户端退出！！！')
+                break
 
     def send(self):
         pass
