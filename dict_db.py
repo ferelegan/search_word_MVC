@@ -15,18 +15,20 @@ class SearchWordSQL:
             "charset":'utf8'
         }
         self.db = connect(**self.__kwargs)
+
+    def cursor(self):
         self.cur = self.db.cursor()
 
-    def test(self):
-        sql = 'insert into user (name,password) values (%s,%s);'
-        self.cur.execute(sql,["mary","123456"])
-        self.db.commit()
-
     def close(self):
-        self.cur.close()
         self.db.close()
 
-
-if __name__ == '__main__':
-    db = SearchWordSQL()
-    db.test()
+    def register(self,name,passwd):
+        sql = 'insert into user (name,password) values (%s,%s);'
+        try:
+            self.cur.execute(sql,[name,passwd])
+        except:
+            return False
+        else:
+            self.db.commit()
+            print('数据注入成功！！！')
+            return True

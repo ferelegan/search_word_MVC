@@ -21,14 +21,19 @@ class SearchWordTCP:
     def connect(self):
         self.__sock.listen(5)
         while True:
-            connfd,addr = self.__sock.accept()
+            try:
+                connfd,addr = self.__sock.accept()
+                print('Connect from:',addr)
+            except KeyboardInterrupt:
+                self.__sock.close()
+                db.close()
+                break
             swp = SearchWordProcess(connfd)
             swp.start()
 
 class SearchWordHandle:
     def __init__(self,connfd):
         self.__connfd = connfd # type:socket
-        self.__sql = SearchWordSQL()
 
     def handle(self):
         pass
@@ -36,17 +41,10 @@ class SearchWordHandle:
     def register(self,mesg):
         name = mesg.split(' ')[0]
         passwd = mesg.split(' ')[1]
-        sql = 'insert into user (name,password) values (%s,%s);'
-        try:
-            self.__sql.cur.execute(sql,[name,passwd])
-        except:
-            self.__connfd.send(b'FAIL')
-        else:
-            self.__sql.db.commit()
-            # print('数据注入成功！！！')
+        if db.register(name,passwd):
             self.__connfd.send(b'OK')
-
-
+        else:
+            self.__connfd.send(b'FAIL')
 
 class SearchWordProcess(Process):
     def __init__(self,connfd):
@@ -68,14 +66,16 @@ class SearchWordProcess(Process):
             elif mesg[0] == 'E':
                 pass
 
-
     def send(self):
         pass
 
-
     def run(self) -> None:
+        db.cursor()
         self.recv()
+        db.cur.close()
+        self.__connfd.close()
 
 if __name__ == '__main__':
+    db = SearchWordSQL() # 将数据库对象设置为全局变量,而游标在每一个子进程中创建
     tcp = SearchWordTCP()
     tcp.connect()
