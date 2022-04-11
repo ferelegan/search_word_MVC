@@ -67,21 +67,28 @@ class SearchWordView:
                 print('输入有误！！！')
 
     def __register(self):
-        if self.__controller.register() == 2:
+        user_name = input('请输入用户名:')
+        user_passwd = input('请输入密码:')
+        result = self.__controller.register(user_name,user_passwd)
+        if result == 2:
             print('注册成功！！！')
             consequence = input('请问是否登陆(y/n):')
             if consequence == 'y':
+                if self.__controller.login(user_name,user_passwd):
+                    print('登录成功！！！')
                 self.__select_menu_2()
             else:
                 return
-        elif self.__controller.register() == 1:
+        elif result == 1:
             print('用户名和密码不能有空格！！！')
             return
         else:
             print('用户名已存在,注册失败！！！')
 
     def __login(self):
-        if self.__controller.login():
+        user_name = input('请输入用户名:')
+        user_passwd = input('请输入密码:')
+        if self.__controller.login(user_name,user_passwd):
             print('登录成功！！！')
             self.__select_menu_2()
         else:
@@ -102,9 +109,7 @@ class SearchWordController:
     def __init__(self):
         self.__sock = SearchWordTCP().connect_server()
 
-    def login(self) -> bool:
-        user_name = input('请输入用户名:')
-        user_passwd = input('请输入密码:')
+    def login(self,user_name, user_passwd) -> bool:
         self.__sock.send(('L %s %s' % (user_name, user_passwd)).encode())
         mesg = self.__sock.recv(1024)
         if mesg == b'OK':
@@ -112,9 +117,7 @@ class SearchWordController:
         else:
             return False
 
-    def register(self) -> int:
-        user_name = input('请输入用户名:')
-        user_passwd = input('请输入密码:')
+    def register(self,user_name,user_passwd) -> int:
         if ' ' in user_passwd or ' ' in user_name:
             return 1
         self.__sock.send(('R %s %s'%(user_name,user_passwd)).encode())
@@ -138,7 +141,7 @@ class SearchWordController:
             mesg = self.__sock.recv(1024).decode()
             if mesg == '##':
                 break
-            print(mesg, end='')
+            print(mesg, end='') # end = ''会导致无法打印
 
 
 

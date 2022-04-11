@@ -65,7 +65,9 @@ class SearchWordHandle:
     def check_history(self):
         history_tuple = db.check_history(self.__name)
         if not history_tuple:
-            self.__connfd.send('没有历史记录！！！'.encode())
+            self.__connfd.send('没有历史记录！！！\n'.encode())
+            sleep(0.1)
+            self.__connfd.send(b'##')
             return
         for item in history_tuple:
             time_str = item[2].strftime("%Y-%m-%d %H:%M:%S")
