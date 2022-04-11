@@ -53,7 +53,6 @@ class SearchWordView:
             else:
                 print('输入有误！！！')
 
-
     def __select_menu_2(self):
         while True:
             self.__menu2()
@@ -61,7 +60,7 @@ class SearchWordView:
             if option == '1':
                 self.__search_word()
             elif option == '2':
-                self.__check_history()
+                self.__controller.check_history()
             elif option == '3':
                 break
             else:
@@ -92,10 +91,11 @@ class SearchWordView:
         self.__select_menu_1()
 
     def __search_word(self):
-        pass
-
-    def __check_history(self):
-        pass
+        while True:
+            word = input('请输入单词(输入 ## 退出)：')
+            if word == '##':
+                return
+            print("%s: %s"%(word,self.__controller.search_word(word)))
 
 
 class SearchWordController:
@@ -126,6 +126,21 @@ class SearchWordController:
 
     def exit(self):
         self.__sock.send(b'E')
+
+    def search_word(self,word):
+        self.__sock.send(('Q %s'%word).encode())
+        mesg = self.__sock.recv(1024)
+        return mesg.decode()
+
+    def check_history(self):
+        self.__sock.send(b'H')
+        while True:
+            mesg = self.__sock.recv(1024).decode()
+            if mesg == '##':
+                break
+            print(mesg, end='')
+
+
 
 
 class SearchWordTCP:

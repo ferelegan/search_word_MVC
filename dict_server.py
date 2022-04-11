@@ -4,6 +4,8 @@
 
 from multiprocessing import Process
 from socket import *
+from time import sleep
+
 from dict_db import *
 
 class SearchWordTCP:
@@ -34,6 +36,7 @@ class SearchWordTCP:
 class SearchWordHandle:
     def __init__(self,connfd):
         self.__connfd = connfd # type:socket
+        self.__name = ''
 
     def handle(self):
         pass
@@ -51,8 +54,25 @@ class SearchWordHandle:
         passwd = mesg.split(' ')[1]
         if db.login(name,passwd):
             self.__connfd.send(b'OK')
+            self.__name = name
         else:
             self.__connfd.send(b'FAIL')
+
+    def search_word(self, word):
+        mean = db.search_word(word,self.__name)
+        self.__connfd.send(mean.encode())
+
+    def check_history(self):
+        history_tuple = db.check_history(self.__name)
+        if not history_tuple:
+            self.__connfd.send('没有历史记录！！！'.encode())
+            return
+        for item in history_tuple:
+            time_str = item[2].strftime("%Y-%m-%d %H:%M:%S")
+            history_str = item[0]+'   '+item[1]+'\t'+time_str
+            self.__connfd.send((history_str+'\n').encode())
+        sleep(0.1)
+        self.__connfd.send(b'##')
 
 
 class SearchWordProcess(Process):
@@ -69,10 +89,10 @@ class SearchWordProcess(Process):
             elif mesg[0] == 'L':
                 self.__handle.login(mesg[1])
             elif mesg[0] == 'Q':
-                pass
+                self.__handle.search_word(mesg[1])
             elif mesg[0] == 'H':
-                pass
-            elif mesg[0] or not mesg == 'E':
+                self.__handle.check_history()
+            elif mesg[0] == 'E' or not mesg :
                 print('客户端退出！！！')
                 break
 
