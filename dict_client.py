@@ -2,9 +2,6 @@
 在线字典 客户端
 """
 
-"""
-在线查单词客户端
-"""
 from socket import *
 
 
@@ -142,8 +139,6 @@ class SearchWordController:
             if mesg == '##':
                 break
             print(mesg, end='') # end = ''会导致无法打印
-
-
 
 
 class SearchWordTCP:

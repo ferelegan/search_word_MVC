@@ -1,0 +1,130 @@
+在线词典
+
+功能说明
+
+用户可以登录和注册
+    登录凭借用户名和密码登录
+    注册要求用户必须填写用户名，密码，其他内容自定
+    用户名要求不能重复
+    要求用户信息能够长期保存
+
+可以通过基本的图形界面print以提示客户端输入。
+    程序分为服务端和客户端两部分
+    客户端通过print打印简单界面输入命令发起请求
+    服务端主要负责逻辑数据处理
+    启动服务端后应该能满足多个客户端同时操作
+
+客户端启动后即进入一级界面，包含如下功能：登录    注册    退出
+	退出后即退出该软件
+	登录成功即进入二级界面，失败回到一级界面
+	注册成功可以回到一级界面继续登录，也可以直接用注册用户进入二级界面
+
+
+用户登录后进入二级界面，功能如下：查单词    历史记录    注销
+	选择注销则回到一级界面
+	查单词：循环输入单词，得到单词解释，输入特殊符号退出单词查询状态
+	历史记录：查询当前用户的查词记录，要求记录包含name   word   time。前10条即可。
+
+分析：
+需求分析
+   用户使用图
+
+技术点设计
+   数据存储 : mysql数据库
+   并发模型 : 多进程  tcp  并发
+   两个界面怎么设计  demo.py
+数据库设计
+    --创建dict数据库
+    create database dict;
+
+    --创建单词表
+    CREATE TABLE `words` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `word` varchar(50) DEFAULT NULL,
+    `mean` text,
+    PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=19652 DEFAULT CHARSET=utf8
+
+    --创建用户表
+    create table user (id int primary key auto_increment,
+    name char(30) not null,password char(30));
+
+    --创建历史记录表
+    create table history (id int primary key auto_increment,
+    word char(50), `time` datetime,
+    user_id int,
+    foreign key(user_id) references user(id));
+
+    --修改用户表
+    alter table user modify name varchar(30) not null unique;
+
+    --修改历史记录表
+    alter table history change word words_id int;
+    alter table history add constraint history_fk foreign key (words_id) references words(id);
+    alter table history modify time datetime default now();
+
+
+    insert into user values(1,'example','123456');
+
+    -- password 数据类型不能设置的太小,否则使用sha256算法将密码进行加密后,无法插入数据库。
+    alter table user modify password char(100);
+
+网络通信协议设计
+             请求类型     请求参数
+   登录         L        name  passwd
+   注册         R        name  passwd
+   查单词       Q         word
+   历史记录     H
+   退出         E
+
+   响应    OK   FAIL
+
+划分模块 划分功能
+
+   登录
+   注册
+   查单词
+   历史记录
+
+   代码封装 : 面向对象  类封装
+
+   整体设计 : C/S
+
+每个功能的具体逻辑设计
+
+   框架搭建
+      客户端：
+          View:视图界面类
+          Controller：逻辑控制类
+          TCP：与服务器连接类
+      服务端：
+          两个模块：
+          处理客户端连接和请求的模块
+              TCP：与客户端连接类
+              Process：自定义进程类
+              Handle：处理客户端请求类
+          数据库操作模块
+              SQL类用来进行数据库的操作
+   注册
+      客户端 :  发送请求
+               等待响应
+               根据响应具体处理
+
+      服务端 :  接收请求
+               判断是否可以注册
+               根据结果发送响应
+               OK : 插入数据
+               FAIL : over
+
+   登录
+   查单词
+   历史记录
+
+cookie :
+  将密码进行加密：
+      hash = hashlib.sha256()
+      hash.update(password.encode())
+      return hash.hexdigest()
+  用户名区分大小写：因为mysql中查询是不区分大小写的,用户名不管是大写还是小写都可以登录成功
+    在where中查询的字段前加 binary 则区分大小写
+    select * from user where binary name="lily";

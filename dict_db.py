@@ -2,9 +2,15 @@
 在线字典 数据库处理
 """
 from pymysql import *
-
+import hashlib
 
 class SearchWordSQL:
+    @staticmethod
+    def change_password(password):
+        hash = hashlib.sha256()
+        hash.update(password.encode())
+        return hash.hexdigest()
+
     def __init__(self):
         self.__kwargs = {
             "host":'localhost',
@@ -23,6 +29,8 @@ class SearchWordSQL:
         self.db.close()
 
     def register(self,name,passwd):
+        # 转换密码
+        passwd = SearchWordSQL.change_password(passwd)
         sql = 'insert into user (name,password) values (%s,%s);'
         try:
             self.cur.execute(sql,[name,passwd])
@@ -30,7 +38,6 @@ class SearchWordSQL:
             return False
         else:
             self.db.commit()
-            print('数据注入成功！！！')
             return True
 
     def login(self, name, passwd):
@@ -44,7 +51,9 @@ class SearchWordSQL:
         return False
         """
         # 老师的
-        sql = 'select name from user where name = %s and password = %s;'
+        # 转换密码
+        passwd = SearchWordSQL.change_password(passwd)
+        sql = 'select name from user where binary name = %s and password = %s;'
         self.cur.execute(sql,[name,passwd])
         if self.cur.fetchone():
             return True

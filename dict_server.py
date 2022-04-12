@@ -38,9 +38,6 @@ class SearchWordHandle:
         self.__connfd = connfd # type:socket
         self.__name = ''
 
-    def handle(self):
-        pass
-
     def register(self,mesg):
         name = mesg.split(' ')[0]
         passwd = mesg.split(' ')[1]
@@ -76,7 +73,6 @@ class SearchWordHandle:
         sleep(0.1)
         self.__connfd.send(b'##')
 
-
 class SearchWordProcess(Process):
     def __init__(self,connfd):
         super().__init__()
@@ -97,9 +93,6 @@ class SearchWordProcess(Process):
             elif mesg[0] == 'E' or not mesg :
                 print('客户端退出！！！')
                 break
-
-    def send(self):
-        pass
 
     def run(self) -> None:
         db.cursor()
